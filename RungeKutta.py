@@ -3,8 +3,14 @@ import copy
 
 
 # definition of the constants
-G = 6.6743e-11 # m^3 / (kg*s^2)
-c = 299792458  # m / s
+#G  = 6.6743e-11 # m^3 / (kg*s^2)
+#c  = 299792458  # m / s
+#M_sun = 1.98847e30 # kg (solar mass)
+
+#G = 4.3009125e-3 # pc * M_sun^-1 * km/s
+#c = 9.7156e-9 # pc / s
+G = c = 1
+
 N = 2 # number of equations to be solved
 
 
@@ -40,6 +46,10 @@ def ODE_RK( xin, yin, h, M, m ):
     Output:
         - array with the results of the Runge-Kutta method
     '''
+
+    # conversion in standard units
+    #M *= M_sun
+    #m *= M_sun
 
     # definitions
     dydx, yt, k1, k2, k3, k4 = (np.zeros(shape=N) for i in range(6))
