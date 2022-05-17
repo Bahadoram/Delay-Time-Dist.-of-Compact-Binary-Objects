@@ -16,9 +16,31 @@ G = c = 1
 N = 2 # number of equations to be solved
 
 def dadt( a, e, M, m ):
+    '''
+    Computes the derivative of the semimajor axis
+
+    Inputs:
+        - a:  previous value of the semimajor axis
+        - e:  previous value of the eccentricity
+        - M, m: masses of the two black holes
+
+    Output:
+        - float with the derivative
+    '''
     return -64/5 * G**3*M*m*(M+m)/(c**5*a**3*(1-e**2)**(7/2)) * (1 +  73/ 24*e**2 + 37/96*e**4)
 
 def dedt( a, e, M, m ):
+    '''
+    Computes the derivative of the eccentricity
+
+    Inputs:
+        - a:  previous value of the semimajor axis
+        - e:  previous value of the eccentricity
+        - M, m: masses of the two black holes
+
+    Output:
+        - float with the derivative
+    '''
     return -304/15 * e * G**3*M*m*(M+m)/(c**5*a**4*(1-e**2)**(5/2)) * (1 + 121/304*e**2 )
 
 def deriv( xin, yin, M, m ):
@@ -38,6 +60,18 @@ def deriv( xin, yin, M, m ):
 
 @delayed(nout=2)
 def first_step( xin, yin, h, M, m ):
+    '''
+    Computes the first step of Runge-Kutta
+
+    Inputs:
+        - xin:  variable in which we want to derive
+        - yin:  array with the values of a and e
+        - h:    time step
+        - M, m: masses of the two black holes
+
+    Output:
+        - two arrays with the Yt and K1 values
+    '''
     yt, k1 = (np.zeros(shape=N) for i in range(2))
     dydx = compute(*deriv( xin, yin, M, m ))
     print(len(dydx))
@@ -48,6 +82,18 @@ def first_step( xin, yin, h, M, m ):
 
 @delayed(nout=2)
 def second_step( xin, yin, y1, h, M, m ):
+    '''
+    Computes the second step of Runge-Kutta
+
+    Inputs:
+        - xin:  variable in which we want to derive
+        - yin:  array with the values of a and e
+        - h:    time step
+        - M, m: masses of the two black holes
+
+    Output:
+        - two arrays with the Yt and K2 values
+    '''
     yt, k2 = (np.zeros(shape=N) for i in range(2))
     dydx = compute(*deriv( xin, y1, M, m ))
     for i in range(N):
@@ -57,6 +103,18 @@ def second_step( xin, yin, y1, h, M, m ):
 
 @delayed(nout=2)
 def third_step( xin, yin, y2, h, M, m ):
+    '''
+    Computes the first step of Runge-Kutta
+
+    Inputs:
+        - xin:  variable in which we want to derive
+        - yin:  array with the values of a and e
+        - h:    time step
+        - M, m: masses of the two black holes
+
+    Output:
+        - two arrays with the Yt and K3 values
+    '''
     yt, k3 = (np.zeros(shape=N) for i in range(2))
     dydx = compute(*deriv( xin, y2, M, m ))
     for i in range(N):
@@ -66,6 +124,21 @@ def third_step( xin, yin, y2, h, M, m ):
 
 @delayed
 def fourth_step( xin, yin, y3, h, M, m, k ):
+    '''
+    Computes the fourth step of Runge-Kutta
+
+    Inputs:
+        - xin:  variable in which we want to derive
+        - yin:  array with the values of a and e
+        - h:    time step
+        - y3:   output of the third step of RK
+        - M, m: masses of the two black holes
+        - k:    list or tuple with k1, k2 and k3 of the previous
+                steps of RK
+
+    Output:
+        - array with the final output of RK
+    '''
     yt, k4 = (np.zeros(shape=N) for i in range(2))
 
     dydx = compute(*deriv( xin, y3, M, m ))
