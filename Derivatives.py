@@ -1,5 +1,7 @@
 import numpy as np
 import copy
+from astropy import units
+from astropy import constants
 
 
 # definition of the constants
@@ -9,7 +11,10 @@ import copy
 
 #G = 4.3009125e-3 # pc * M_sun^-1 * km/s
 #c = 9.7156e-9 # pc / s
-G = c = 1
+#G = c = 1
+
+G = 6.6743e-11 * 1.989e30 * 3.1536e13**2 / 696340000**3
+c = 299792458 * 3.1536e13 / 696340000
 
 N = 2 # number of equations to be solved
 
