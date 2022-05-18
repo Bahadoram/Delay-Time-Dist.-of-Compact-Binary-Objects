@@ -52,8 +52,7 @@ def ODE_RK( xin, yin, h, M, m ):
     #m *= M_sun
 
     # definitions
-    dydx, yt, k1, k2, k3, k4 = (np.zeros(shape=N) for i in range(6))
-    yout = copy.copy(yin)
+    yout, dydx, yt, k1, k2, k3, k4 = (np.zeros(shape=N) for i in range(7))
 
     # t_i + delta/2
     hh = .5 * h
@@ -101,8 +100,7 @@ def ODE_EU( xin, yin, h, M, m ):
     '''
 
     # definitions
-    dydx = np.zeros(shape=N)
-    yout = copy.copy(yin)
+    yout, dydx = (np.zeros(shape=N) for i in range(2))
 
     # compute f(tn,yn)
     dydx = deriv( xin, yin, M, m )
