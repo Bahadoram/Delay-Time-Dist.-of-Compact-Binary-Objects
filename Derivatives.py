@@ -1,5 +1,7 @@
 import numpy as np
 import copy
+from scipy import constants
+from astropy import units as u
 
 # definition of the constants
 #G  = 6.6743e-11 # m^3 / (kg*s^2)
@@ -8,10 +10,11 @@ import copy
 
 #G = 4.3009125e-3 # pc * M_sun^-1 * km/s
 #c = 9.7156e-9 # pc / s
-#G = c = 1
 
-G = 6.6743e-11 * 1.989e30 * 3.1536e13**2 / 696340000**3 # R_sun^3 / (M_sun*Myr^2)
-c = 299792458 * 3.1536e13 / 696340000 # R_sun / Myr
+G=constants.G*((u.m**3)/u.kg*u.s**2)
+G=G.to((u.R_sun**3)/u.M_sun*(u.year*1e6)**2).value
+c=constants.c*u.m/u.s
+c=c.to(u.R_sun/u.year*1e6).value
 
 N = 2 # number of equations to be solved
 
