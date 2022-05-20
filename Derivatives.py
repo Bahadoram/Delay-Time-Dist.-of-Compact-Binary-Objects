@@ -11,10 +11,10 @@ from astropy import units as u
 #G = 4.3009125e-3 # pc * M_sun^-1 * km/s
 #c = 9.7156e-9 # pc / s
 
-G=constants.G*((u.m**3)/u.kg*u.s**2)
-G=G.to((u.R_sun**3)/u.M_sun*(u.year*1e6)**2).value
-c=constants.c*u.m/u.s
-c=c.to(u.R_sun/u.year*1e6).value
+G=constants.G*((u.m**3)/(u.kg*u.s**2))
+G=(G.to((u.R_sun**3)/(u.M_sun*(u.year*1e6)**2))).value
+c=constants.c*(u.m/u.s)
+c=c.to(u.R_sun/(u.year*1e6)).value
 
 N = 2 # number of equations to be solved
 
