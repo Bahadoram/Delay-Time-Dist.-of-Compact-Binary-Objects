@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import pandas as pd
 from scipy import constants
 from astropy import units as u
 
@@ -18,6 +19,9 @@ c=c.to(u.R_sun/(u.year*1e6)).value
 
 N = 2 # number of equations to be solved
 
+# set tolerance, i.e. the maximum difference between
+# the y values (the difference should be constant theoretically )
+tol = .02
 
 def deriv( xin, yin, M, m ):
     '''
@@ -113,3 +117,44 @@ def ODE_EU( xin, yin, h, M, m ):
         yout[ i ] = yin[ i ] + h * dydx[ i ] # yn + h * f(tn,yn)
 
     return yout
+
+
+def delay_time(row, func, h, t):
+    '''
+    Function to compute the delay time for each entry
+
+    Inputs:
+        - row:  row of the BHBH dataframe (it should have the following columns: Semimajor,
+                Ecceontricity, Mass_0, Mass_1)
+        - func: integration function to use (implemented until nuw ODE_RK and ODE_EU)
+        - h:    spacing in the grid of time
+        - t:    array of times (not used, to be removed)
+    '''
+
+    # assign the masses
+    M1 = row.Mass_0
+    M2 = row.Mass_1
+
+    # schwarzschild radius (3 times)
+    r_sc = 6 * G * max(M1, M2) / c**2
+
+    # assign the initial values
+    a = row.Semimajor
+    e = row.Eccentricity
+
+    while a > r_sc:
+        a_new, e_new = func( t, (a, e), h, M2, M1 )
+
+        if abs( a_new - a )/a < (0.1*tol): #set adaptive timestep
+            h *= 2
+            a_new, e_new = func( t, (a, e), h, M2, M1 )
+
+        elif abs(a_new - a)/a > tol:
+            while abs(a_new - a)/a > tol:
+                h /= 10.
+                a_new, e_new = func( t, (a, e), h, M2, M1 )
+
+        a, e = (a_new, e_new)
+        t += h
+
+    return pd.Series([t, e])
