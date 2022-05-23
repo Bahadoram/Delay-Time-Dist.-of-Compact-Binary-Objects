@@ -158,3 +158,44 @@ def delay_time(row, func, h, t):
         t += h
 
     return pd.Series([t, e])
+
+
+def analyse(row, func, h, t):
+    
+    h_list=[h]
+    t_list=[t]
+    
+    # assign the masses
+    M1 = row.Mass_0
+    M2 = row.Mass_1
+
+    # schwarzschild radius (3 times)
+    r_sc = 6 * G * max(M1, M2) / c**2
+
+    # assign the initial values
+    a = row.Semimajor
+    e = row.Eccentricity
+    
+    sm_list=[row.Semimajor]
+    ec_list=[row.Eccentricity]
+
+    while a > r_sc:
+        a_new, e_new = func( t, (a, e), h, M2, M1 )
+
+        if abs( a_new - a )/a < (0.1*tol): #set adaptive timestep
+            h *= 2
+            a_new, e_new = func( t, (a, e), h, M2, M1 )
+
+        elif abs(a_new - a)/a > tol:
+            while abs(a_new - a)/a > tol:
+                h /= 10.
+                a_new, e_new = func( t, (a, e), h, M2, M1 )
+
+        a, e = (a_new, e_new)
+        t += h
+        h_list.append(h)
+        t_list.append(t)
+        sm_list.append(a_new)
+        ec_list.append(e_new) 
+
+    return pd.Series([t_list, h_list, sm_list, ec_list, t])
