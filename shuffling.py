@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from Derivatives import *
 
 dir  = "DATA/"
@@ -16,8 +17,9 @@ t = 0
 
 # number of rows to compute
 n = 10000
+tqdm.pandas()
 
-delay = BHBH.apply(func=delay_time, axis='columns', args=(ODE_RK, h, t))
+delay = BHBH.progress_apply(func=delay_time, axis='columns', args=(ODE_RK, h, t))
 delay.rename(columns={0:'Delay_Time', 1:'Eccentricity_Delay'}, inplace=True)
 
 shuffled = pd.concat([BHBH, delay], axis=1)
