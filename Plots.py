@@ -514,7 +514,7 @@ def plot_hist(Y, nbins):
 
     #b = np.histogram_bin_edges(BHBH[(BHBH.Delay_Time<1e18)].Delay_Time, bins='rice') # does not work with bind='fd'
     b = np.logspace(np.log10(min(Y)), np.log10(max(Y)), nbins)
-    entries, edges, _ = ax.hist(Y_pred, bins=b, density=True, histtype='step', lw=3)
+    entries, edges, _ = ax.hist(Y, bins=b, density=True, histtype='step', lw=3)
 
     # calculate bin centers
     bin_centers = 0.5 * (edges[:-1] + edges[1:])
