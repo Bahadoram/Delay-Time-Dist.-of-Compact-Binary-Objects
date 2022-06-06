@@ -509,22 +509,65 @@ def plot_all(df, column, Delay=False, bins=100):
 
 
 
-def plot_hist(Y, nbins):
+def plot_hist(Y, nbins, log=False):
+    '''
+    Plot the distribution of Y.
+
+    Inputs:
+        - Y: array to plot the distribution of
+        - nbins: number of bins to use
+    '''
     fig, ax = plt.subplots(figsize=(15,7))
 
-    #b = np.histogram_bin_edges(BHBH[(BHBH.Delay_Time<1e18)].Delay_Time, bins='rice') # does not work with bind='fd'
-    b = np.logspace(np.log10(min(Y)), np.log10(max(Y)), nbins)
+    if log==True:
+        b = np.histogram_bin_edges(Y, bins='auto')
+        ax.set_xlabel('Delay Time [log/Myr]')
+        ax.set_ylabel('PDF [log]')
+
+    else:
+        b = np.logspace(np.log10(min(Y)), np.log10(max(Y)), nbins)
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_xlabel('Delay Time [Myr]')
+        ax.set_ylabel('PDF')
     entries, edges, _ = ax.hist(Y, bins=b, density=True, histtype='step', lw=3)
 
     # calculate bin centers
     bin_centers = 0.5 * (edges[:-1] + edges[1:])
 
-    ax.set_xscale('log')
-    ax.set_yscale('log')
 
     ax.set_title('Distribution of the Delay times')
-    ax.set_xlabel('Delay Time [Myr]')
-    ax.set_ylabel('PDF')
     ax.grid(ls='dotted', lw=2)
+
+    plt.show()
+
+
+def Plot_TestPred(Y_pred, Y_test, log=False):
+    '''
+    Produce the scatter plot of the predictions as a function
+    of the true labels.
+
+    Inputs:
+        - Y_pred: array of the predictions
+        - Y_test: array of the true labels
+        - log: True if data are already logscaled, False if not
+    '''
+
+    fig, ax = plt.subplots(figsize=(15,12))
+    ax.scatter(Y_test, Y_pred)
+    ax.set_title('Y_pred vs Y_test')
+
+    if log==True:
+        ax.set_xlabel('Delay Time computed [Myr]')
+        ax.set_ylabel('Delay Time predicted [Myr]')
+        ax.grid(ls='dotted', lw=2)
+
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+
+    else:
+        ax.set_xlabel('Test T_del [log/Myr]')
+        ax.set_ylabel('Predicted T_del [log/Myr]')
+        ax.grid(ls='dotted', lw=2)
 
     plt.show()
