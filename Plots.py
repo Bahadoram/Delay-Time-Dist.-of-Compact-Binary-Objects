@@ -1,10 +1,11 @@
-import numpy             as np
-import pandas            as pd
-import matplotlib.pyplot as plt
+import numpy               as np
+import pandas              as pd
+import matplotlib.pyplot   as plt
 import time
 
-from scipy.optimize import curve_fit
-from scipy          import stats
+from scipy.optimize      import curve_fit
+from scipy               import stats
+from matplotlib.gridspec import GridSpec
 
 def power_law(x, a, b):
     '''
@@ -90,14 +91,14 @@ def fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
         - xmax: value in which the fit should end
     '''
 
-    fig, ax = plt.subplots(figsize=(15,7))
+    fig, ax = plt.subplots(nrows=2, figsize=(15,15))
 
     mask = np.where((bin_centers>xmin) & (bin_centers<xmax) & (entries!=0))
 
     results = stats.linregress(np.log10(bin_centers[mask]), np.log10(entries[mask]))
 
-    ax.scatter(np.log10(bin_centers[mask]), np.log10(entries[mask]), s=30, marker='x', label='Real data', color='black')
-    ax.plot(np.log10(bin_centers[mask]), results.intercept + results.slope*np.log10(bin_centers[mask]), '--', lw=3, label='Power Law fit', color='red')
+    ax[0].scatter(np.log10(bin_centers[mask]), np.log10(entries[mask]), s=30, marker='x', label='Real data', color='black')
+    ax[0].plot(np.log10(bin_centers[mask]), results.intercept + results.slope*np.log10(bin_centers[mask]), '--', lw=3, label='Power Law fit', color='red')
 
     ts = tinv(0.05, len(bin_centers[mask])-2)
     print(f"slope (95%):\t {results.slope:.6f} +/- {ts*results.stderr:.6f}")
@@ -124,11 +125,20 @@ def fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
     print("Covariance matrix:\n", np.corrcoef(np.log10(bin_centers[mask]),np.log10(entries[mask]))) # check with the correlation matrix that R is the correlation coefficient
     print("\n\n")
 
-    ax.set_xlabel('Delay Time [Myr]')
-    ax.set_ylabel('PDF')
+    ax[0].set_xlabel('Delay Time [log/Myr]')
+    ax[0].set_ylabel('PDF [log]')
 
-    ax.grid(ls='dotted')
-    ax.legend(loc='upper right')
+    ax[0].grid(ls='dotted')
+    ax[0].legend(loc='upper right')
+
+    ax[1].scatter(np.log10(bin_centers[mask]), (results.intercept + results.slope*np.log10(bin_centers[mask])) - np.log10(entries[mask]), s=30, marker='x', label='Residuals', color='black')
+    ax[1].axhline(y=0, color='r', linestyle='dashed', label="expected residual")
+
+    ax[1].set_xlabel('Delay Time [log/Myr]')
+    ax[1].set_ylabel('Residual [log]')
+
+    ax[1].grid(ls='dotted')
+    ax[1].legend(loc='upper right')
 
     plt.show()
 
@@ -142,9 +152,15 @@ def fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
         - entries: value of the pdf in each bin center
         - xstep: list of steps
     '''
-    fig, ax = plt.subplots(figsize=(15,7))
+
+    fig = plt.figure(constrained_layout=True, figsize=(15,15))
+
+    gs  = GridSpec(2, 3, figure=fig)
+    ax  = fig.add_subplot(gs[0, :])
+    ax_res = (fig.add_subplot(gs[1, 0]),fig.add_subplot(gs[1, 1]), fig.add_subplot(gs[1, -1]))
 
     ax.scatter(np.log10(bin_centers[np.where(entries!=0)]), np.log10(entries[np.where(entries!=0)]), s=50, marker='x', label='Real data', c='black')
+
     for i in range(len(xstep)-1):
 
         print("----- FIT", i, "-----\n")
@@ -178,6 +194,17 @@ def fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
         print("R2 =", rsq, "\nR =", np.sqrt(rsq))
         print("Covariance matrix:\n", np.corrcoef(np.log10(bin_centers[mask]),np.log10(entries[mask]))) # check with the correlation matrix that R is the correlation coefficient
         print("\n\n")
+
+
+        ax_res[i].scatter(np.log10(bin_centers[mask]), (results.intercept + results.slope*np.log10(bin_centers[mask])) - np.log10(entries[mask]), s=30, marker='x', color='black')
+        ax_res[i].axhline(y=0, color='r', linestyle='dashed')
+
+        ax_res[i].set_xlabel('Residual in Delay Time [log/Myr]')
+        ax_res[i].set_ylabel('log [log]')
+
+        ax_res[i].grid(ls='dotted')
+        ax_res[i].legend(loc='upper right')
+
 
     ax.set_xlabel('Delay Time [Myr]')
     ax.set_ylabel('PDF')
@@ -469,7 +496,7 @@ def alpha_fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
 
     plt.show
 
-def plot_all(df, column, Delay=False, bins=100):
+def plot_all(df, column, Delay=False, bins=100, obj='Z'):
     '''
     Plot all the distributions together.
 
@@ -494,7 +521,10 @@ def plot_all(df, column, Delay=False, bins=100):
 
     for key in df.keys():
         b                    = np.logspace(np.log10(min(df[key][column]+BWorldtime[key])), np.log10(max(df[key][column]+BWorldtime[key])), bins )
-        entries, edges, _    = ax.hist(df[key][column]+BWorldtime[key], bins=b, histtype='step', lw=3, label='Z = '+str(key), density=True )
+        if obj=='Z':
+            entries, edges, _    = ax.hist(df[key][column]+BWorldtime[key], bins=b, histtype='step', lw=3, label='Z = '+str(key), density=True )
+        elif obj=='alpha':
+            entries, edges, _    = ax.hist(df[key][column]+BWorldtime[key], bins=b, histtype='step', lw=3, label='α = '+str(key), density=True )
 
     ax.set_xscale('log')
     ax.set_yscale('log')
@@ -503,10 +533,12 @@ def plot_all(df, column, Delay=False, bins=100):
     ax.set_xlabel('Delay Time [Myr]')
     ax.set_ylabel('PDF')
     ax.grid(ls='dotted')
-    ax.legend(loc='upper right', ncol=3)
+    if obj=='Z':
+        ax.legend(loc='upper right', ncol=3)
+    elif obj=='alpha':
+        ax.legend(loc='upper right', ncol=2)
     #fig.savefig('figures/Delay_Time_Z.png')
     plt.show
-
 
 
 def plot_hist(Y, nbins, log=False):
