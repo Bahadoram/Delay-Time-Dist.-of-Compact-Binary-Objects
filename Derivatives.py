@@ -5,12 +5,12 @@ from scipy import constants
 from astropy import units as u
 
 # definition of the constants
-#G  = 6.6743e-11 # m^3 / (kg*s^2)
-#c  = 299792458  # m / s
-#M_sun = 1.98847e30 # kg (solar mass)
+# G  = 6.6743e-11 # m^3 / (kg*s^2)
+# c  = 299792458  # m / s
+# M_sun = 1.98847e30 # kg (solar mass)
 
-#G = 4.3009125e-3 # pc * M_sun^-1 * km/s
-#c = 9.7156e-9 # pc / s
+# G = 4.3009125e-3 # pc * M_sun^-1 * km/s
+# c = 9.7156e-9 # pc / s
 
 G=constants.G*((u.m**3)/(u.kg*u.s**2))
 G=(G.to((u.R_sun**3)/(u.M_sun*(u.year*1e6)**2))).value
@@ -56,10 +56,6 @@ def ODE_RK( xin, yin, h, M, m ):
         - array with the results of the Runge-Kutta method
     '''
 
-    # conversion in standard units
-    #M *= M_sun
-    #m *= M_sun
-
     # definitions
     yout, dydx, yt, k1, k2, k3, k4 = (np.zeros(shape=N) for i in range(7))
 
@@ -89,7 +85,8 @@ def ODE_RK( xin, yin, h, M, m ):
     dydx = deriv( xin, yt, M, m )
     for i in range(N):
         k4  [ i ] = h * dydx[ i ]
-        yout[ i ] = yin[ i ]  + k1 [ i ] / 6. + k2 [ i ] / 3. + k3 [ i ] / 3. + k4 [ i ] / 6.
+        yout[ i ] = yin[ i ]  + k1 [ i ] / 6. + k2 [ i ] / 3. \
+                              + k3 [ i ] / 3. + k4 [ i ] / 6.
 
     return yout
 
@@ -119,14 +116,14 @@ def ODE_EU( xin, yin, h, M, m ):
     return yout
 
 
-def delay_time(row, func, h, t):
+def delay_time(row, function, h, t):
     '''
     Function to compute the delay time for each entry
 
     Inputs:
-        - row:  row of the BHBH dataframe (it should have the following columns: Semimajor,
-                Ecceontricity, Mass_0, Mass_1)
-        - func: integration function to use (implemented until nuw ODE_RK and ODE_EU)
+        - row:  row of the BHBH dataframe (it should have the following
+                columns: Semimajor, Eccentricity, Mass_0, Mass_1)
+        - function: integration function to use (ODE_RK and ODE_EU)
         - h:    spacing in the grid of time
         - t:    array of times (not used, to be removed)
     '''
@@ -143,16 +140,16 @@ def delay_time(row, func, h, t):
     e = row.Eccentricity
 
     while a > r_sc:
-        a_new, e_new = func( t, (a, e), h, M2, M1 )
+        a_new, e_new = function( t, (a, e), h, M2, M1 )
 
         if abs( a_new - a )/a < (0.1*tol): #set adaptive timestep
             h *= 2
-            a_new, e_new = func( t, (a, e), h, M2, M1 )
+            a_new, e_new = function( t, (a, e), h, M2, M1 )
 
         elif abs(a_new - a)/a > tol:
             while abs(a_new - a)/a > tol:
                 h /= 10.
-                a_new, e_new = func( t, (a, e), h, M2, M1 )
+                a_new, e_new = function( t, (a, e), h, M2, M1 )
 
         a, e = (a_new, e_new)
         t += h
@@ -160,11 +157,10 @@ def delay_time(row, func, h, t):
     return pd.Series([t, e])
 
 
-def analyse(row, func, h, t):
-    
+def analyse(row, function, h, t):
     h_list=[h]
     t_list=[t]
-    
+
     # assign the masses
     M1 = row.Mass_0
     M2 = row.Mass_1
@@ -175,21 +171,21 @@ def analyse(row, func, h, t):
     # assign the initial values
     a = row.Semimajor
     e = row.Eccentricity
-    
+
     sm_list=[row.Semimajor]
     ec_list=[row.Eccentricity]
 
     while a > r_sc:
-        a_new, e_new = func( t, (a, e), h, M2, M1 )
+        a_new, e_new = function( t, (a, e), h, M2, M1 )
 
         if abs( a_new - a )/a < (0.1*tol): #set adaptive timestep
             h *= 2
-            a_new, e_new = func( t, (a, e), h, M2, M1 )
+            a_new, e_new = function( t, (a, e), h, M2, M1 )
 
         elif abs(a_new - a)/a > tol:
             while abs(a_new - a)/a > tol:
                 h /= 10.
-                a_new, e_new = func( t, (a, e), h, M2, M1 )
+                a_new, e_new = function( t, (a, e), h, M2, M1 )
 
         a, e = (a_new, e_new)
         t += h

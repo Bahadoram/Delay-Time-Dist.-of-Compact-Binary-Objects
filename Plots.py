@@ -41,7 +41,7 @@ def chisqr(obs, exp):
 # t-student distribution
 tinv = lambda p, df: abs(stats.t.ppf(p/2, df))
 
-def plot_complete(df, column, Delay=False, bins=100):
+def plot_complete(df, column, Delay=False, bins=100, save=False, filename=None):
     '''
     Plot the whole dataset.
 
@@ -51,6 +51,8 @@ def plot_complete(df, column, Delay=False, bins=100):
         - Delay: boolean, if true plot the sum of merger time and BWorldtime,
                  else plot just the merger time distribution
         - bins: number of bins in the histogram
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
 
     Outputs:
         - bin_centers: center of each bin
@@ -75,12 +77,16 @@ def plot_complete(df, column, Delay=False, bins=100):
 
     ax.set_title('Distribution of the Merger times')
     ax.set_xlabel('Delay Time [Myr]')
-    ax.set_ylabel('PDF')
+    ax.set_ylabel('PDF [log]')
+
+    if save==True:
+        fig.savefig('figures/'+filename)
+
     plt.show()
 
     return bin_centers, entries
 
-def fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
+def fit_complete(bin_centers, entries, xmin=0, xmax=1e30, save=False, filename=None):
     '''
     Fit the distribution with a unique function.
 
@@ -89,9 +95,11 @@ def fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
         - entries: value of the pdf in each bin center
         - xmin: value in which the fit should start
         - xmax: value in which the fit should end
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
     '''
 
-    fig, ax = plt.subplots(nrows=2, figsize=(15,15))
+    fig, ax = plt.subplots(nrows=2, figsize=(15,12))
 
     mask = np.where((bin_centers>xmin) & (bin_centers<xmax) & (entries!=0))
 
@@ -140,10 +148,13 @@ def fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
     ax[1].grid(ls='dotted')
     ax[1].legend(loc='upper right')
 
+    if save==True:
+        fig.savefig('figures/'+filename)
+
     plt.show()
 
 
-def fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
+def fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30), save=False, filename=None):
     '''
     Fit the distribution with a function defined by steps.
 
@@ -151,9 +162,11 @@ def fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
         - bin_centers: center of each bin
         - entries: value of the pdf in each bin center
         - xstep: list of steps
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
     '''
 
-    fig = plt.figure(constrained_layout=True, figsize=(15,15))
+    fig = plt.figure(constrained_layout=True, figsize=(15,12))
 
     gs  = GridSpec(2, 3, figure=fig)
     ax  = fig.add_subplot(gs[0, :])
@@ -199,22 +212,25 @@ def fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
         ax_res[i].scatter(np.log10(bin_centers[mask]), (results.intercept + results.slope*np.log10(bin_centers[mask])) - np.log10(entries[mask]), s=30, marker='x', color='black')
         ax_res[i].axhline(y=0, color='r', linestyle='dashed')
 
-        ax_res[i].set_xlabel('Residual in Delay Time [log/Myr]')
-        ax_res[i].set_ylabel('log [log]')
+        ax_res[i].set_xlabel('Residual [log]')
+        ax_res[i].set_ylabel('Delay Time [log/Myr]')
 
         ax_res[i].grid(ls='dotted')
         ax_res[i].legend(loc='upper right')
 
 
     ax.set_xlabel('Delay Time [Myr]')
-    ax.set_ylabel('PDF')
+    ax.set_ylabel('PDF [log]')
 
     ax.grid(ls='dotted')
     ax.legend(loc='upper right')
 
+    if save==True:
+        fig.savefig('figures/'+filename)
+
     plt.show()
 
-def Z_plot_figure(df, column, Delay=False, bins=100):
+def Z_plot_figure(df, column, Delay=False, bins=100, save=False, filename=None):
     '''
     Plot the whole dataset divided by values of Z.
 
@@ -224,6 +240,8 @@ def Z_plot_figure(df, column, Delay=False, bins=100):
         - Delay: boolean, if true plot the sum of merger time and BWorldtime,
                  else plot just the merger time distribution
         - bins: number of bins in the histogram
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
 
     Outputs:
         - bin_centers: center of each bin
@@ -264,11 +282,14 @@ def Z_plot_figure(df, column, Delay=False, bins=100):
             x +=1
             y = 0
 
+    if save==True:
+        fig.savefig('figures/'+filename)
+
     plt.show
 
     return bin_centers, entries
 
-def Z_fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
+def Z_fit_complete(bin_centers, entries, xmin=0, xmax=1e30, save=False, filename=None):
     '''
     Fit the distributions with a unique function.
 
@@ -277,6 +298,8 @@ def Z_fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
         - entries: value of the pdf in each bin center
         - xmin: value in which the fit should start
         - xmax: value in which the fit should end
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
     '''
     results = np.empty(shape=(3,5), dtype=object)
 
@@ -298,7 +321,7 @@ def Z_fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
         ax[x,y].plot(np.log10(bin_centers[x,y][mask]), results[x,y].intercept + results[x,y].slope*np.log10(bin_centers[x,y][mask]), '--', lw=4)
 
         ax[x,y].set_title('Z = '+str(key))
-        ax[x,y].set_xlabel('Delay Time [Myr] [log]')
+        ax[x,y].set_xlabel('Delay Time [log/Myr]')
         ax[x,y].set_ylabel('PDF [log]')
         ax[x,y].grid(ls='dotted')
 
@@ -310,9 +333,12 @@ def Z_fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
     labels=['PDF', "Fit"]
     fig.legend(labels, loc='center',bbox_to_anchor=(.5,.925), ncol=len(labels), bbox_transform=fig.transFigure)
 
+    if save==True:
+        fig.savefig('figures/'+filename)
+
     plt.show
 
-def Z_fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
+def Z_fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30), save=False, filename=None):
     '''
     Fit the distribution with a function defined by steps.
 
@@ -320,6 +346,8 @@ def Z_fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
         - bin_centers: center of each bin
         - entries: value of the pdf in each bin center
         - xstep: list of steps
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
     '''
     results = np.empty(shape=(3,5,3), dtype=object)
 
@@ -344,7 +372,7 @@ def Z_fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
 
         ax[x,y].set_title('Z = '+str(key))
         ax[x,y].set_xlabel('Delay Time [Myr]')
-        ax[x,y].set_ylabel('PDF')
+        ax[x,y].set_ylabel('PDF [log]')
         ax[x,y].grid(ls='dotted')
 
         y += 1
@@ -355,9 +383,12 @@ def Z_fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
     labels=['PDF', "Fit range 1", "Fit range 2", "Fit range 3"]
     fig.legend(labels, loc='center',bbox_to_anchor=(.5,.925), ncol=len(labels), bbox_transform=fig.transFigure)
 
+    if save==True:
+        fig.savefig('figures/'+filename)
+
     plt.show
 
-def alpha_plot_figure(df, column, Delay=False, bins=100):
+def alpha_plot_figure(df, column, Delay=False, bins=100, save=False, filename=None):
     '''
     Plot the whole dataset divided by values of alpha.
 
@@ -367,6 +398,8 @@ def alpha_plot_figure(df, column, Delay=False, bins=100):
         - Delay: boolean, if true plot the sum of merger time and BWorldtime,
                  else plot just the merger time distribution
         - bins: number of bins in the histogram
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
 
     Outputs:
         - bin_centers: center of each bin
@@ -407,11 +440,14 @@ def alpha_plot_figure(df, column, Delay=False, bins=100):
             x +=1
             y = 0
 
+    if save==True:
+        fig.savefig('figures/'+filename)
+
     plt.show
 
     return bin_centers, entries
 
-def alpha_fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
+def alpha_fit_complete(bin_centers, entries, xmin=0, xmax=1e30, save=False, filename=None):
     '''
     Fit the distribution with a unique function divided by values of alpha.
 
@@ -420,6 +456,8 @@ def alpha_fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
         - entries: value of the pdf in each bin center
         - xmin: value in which the fit should start
         - xmax: value in which the fit should end
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
     '''
     results = np.empty(shape=(2,2), dtype=object)
 
@@ -439,7 +477,7 @@ def alpha_fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
         ax[x,y].plot(np.log10(bin_centers[x,y][mask]), results[x,y].intercept + results[x,y].slope*np.log10(bin_centers[x,y][mask]), '--', lw=4)
 
         ax[x,y].set_title('α = '+str(key))
-        ax[x,y].set_xlabel('Delay Time [Myr] [log]')
+        ax[x,y].set_xlabel('Delay Time [log/Myr]')
         ax[x,y].set_ylabel('PDF [log]')
         ax[x,y].grid(ls='dotted')
 
@@ -451,9 +489,12 @@ def alpha_fit_complete(bin_centers, entries, xmin=0, xmax=1e30):
     labels=['PDF', "Fit"]
     fig.legend(labels, loc='center',bbox_to_anchor=(.5,.925), ncol=len(labels), bbox_transform=fig.transFigure)
 
+    if save==True:
+        fig.savefig('figures/'+filename)
+
     plt.show
 
-def alpha_fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
+def alpha_fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30), save=False, filename=None):
     '''
     Fit the distribution with a function defined by steps.
 
@@ -461,6 +502,8 @@ def alpha_fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
         - bin_centers: center of each bin
         - entries: value of the pdf in each bin center
         - xstep: list of steps
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
     '''
     results = np.empty(shape=(2,2,3), dtype=object)
 
@@ -483,7 +526,7 @@ def alpha_fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
 
         ax[x,y].set_title('α = '+str(key))
         ax[x,y].set_xlabel('Delay Time [Myr]')
-        ax[x,y].set_ylabel('PDF')
+        ax[x,y].set_ylabel('PDF [log]')
         ax[x,y].grid(ls='dotted')
 
         y += 1
@@ -494,9 +537,12 @@ def alpha_fit_range(bin_centers, entries, xstep = (0, 1e7, 1e19, 1e30)):
     labels=['PDF', "Fit range 1", "Fit range 2", "Fit range 3"]
     fig.legend(labels, loc='center',bbox_to_anchor=(.5,.925), ncol=len(labels), bbox_transform=fig.transFigure)
 
+    if save==True:
+        fig.savefig('figures/'+filename)
+
     plt.show
 
-def plot_all(df, column, Delay=False, bins=100, obj='Z'):
+def plot_all(df, column, Delay=False, bins=100, obj='Z', save=False, filename=None):
     '''
     Plot all the distributions together.
 
@@ -505,6 +551,9 @@ def plot_all(df, column, Delay=False, bins=100, obj='Z'):
         - column: column to plot the distribution of
         - Delay: False: Plot merger time, true plot delay time
         - bins: number of bins
+        - obj: 'Z' if metallicity, 'alpha' if common envelope
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
     '''
 
     BWorldtime = {elem : pd.Series for elem in df}
@@ -517,7 +566,7 @@ def plot_all(df, column, Delay=False, bins=100, obj='Z'):
         for key in df.keys():
             BWorldtime[key] = df[key]['BWorldtime']
 
-    fig, ax = plt.subplots(figsize=(18,10))
+    fig, ax = plt.subplots(figsize=(18,6))
 
     for key in df.keys():
         b                    = np.logspace(np.log10(min(df[key][column]+BWorldtime[key])), np.log10(max(df[key][column]+BWorldtime[key])), bins )
@@ -537,17 +586,22 @@ def plot_all(df, column, Delay=False, bins=100, obj='Z'):
         ax.legend(loc='upper right', ncol=3)
     elif obj=='alpha':
         ax.legend(loc='upper right', ncol=2)
-    #fig.savefig('figures/Delay_Time_Z.png')
+
+    if save==True:
+        fig.savefig('figures/'+filename)
+
     plt.show
 
 
-def plot_hist(Y, nbins, log=False):
+def plot_hist(Y, nbins, log=False, save=False, filename=None):
     '''
     Plot the distribution of Y.
 
     Inputs:
         - Y: array to plot the distribution of
         - nbins: number of bins to use
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
     '''
     fig, ax = plt.subplots(figsize=(15,7))
 
@@ -574,7 +628,7 @@ def plot_hist(Y, nbins, log=False):
     plt.show()
 
 
-def Plot_TestPred(Y_pred, Y_test, log=False):
+def Plot_TestPred(Y_pred, Y_test, log=False, save=False, filename=None):
     '''
     Produce the scatter plot of the predictions as a function
     of the true labels.
@@ -583,6 +637,8 @@ def Plot_TestPred(Y_pred, Y_test, log=False):
         - Y_pred: array of the predictions
         - Y_test: array of the true labels
         - log: True if data are already logscaled, False if not
+        - save: boolean: if true save figure
+        - filename: name of the file to be saved
     '''
 
     fig, ax = plt.subplots(figsize=(15,12))
