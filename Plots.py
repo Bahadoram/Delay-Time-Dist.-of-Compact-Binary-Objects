@@ -556,6 +556,8 @@ def plot_all(df, column, Delay=False, bins=100, obj='Z', save=False, filename=No
         - filename: name of the file to be saved
     '''
 
+    colors = plt.cm.rainbow(np.linspace(0, 1, len(df.keys())))
+
     BWorldtime = {elem : pd.Series for elem in df}
     if Delay==False:
         title = 'Merger Time'
@@ -568,12 +570,12 @@ def plot_all(df, column, Delay=False, bins=100, obj='Z', save=False, filename=No
 
     fig, ax = plt.subplots(figsize=(18,6))
 
-    for key in df.keys():
+    for key, c in zip(df.keys(), colors):
         b                    = np.logspace(np.log10(min(df[key][column]+BWorldtime[key])), np.log10(max(df[key][column]+BWorldtime[key])), bins )
         if obj=='Z':
-            entries, edges, _    = ax.hist(df[key][column]+BWorldtime[key], bins=b, histtype='step', lw=3, label='Z = '+str(key), density=True )
+            entries, edges, _    = ax.hist(df[key][column]+BWorldtime[key], bins=b, histtype='step', lw=3, label='Z = '+str(key), density=True, color=c )
         elif obj=='alpha':
-            entries, edges, _    = ax.hist(df[key][column]+BWorldtime[key], bins=b, histtype='step', lw=3, label='α = '+str(key), density=True )
+            entries, edges, _    = ax.hist(df[key][column]+BWorldtime[key], bins=b, histtype='step', lw=3, label='α = '+str(key), density=True, color=c )
 
     ax.set_xscale('log')
     ax.set_yscale('log')
